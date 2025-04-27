@@ -1,0 +1,130 @@
+.favorites-container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+h2 {
+  margin-bottom: 24px;
+  color: #2c3e50;
+  font-size: 28px;
+  font-weight: 600;
+  position: relative;
+  padding-bottom: 12px;
+}
+
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 60px;
+  height: 4px;
+  background: #1976d2;
+  border-radius: 2px;
+}
+
+.no-favorites {
+  text-align: center;
+  padding: 48px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-radius: 12px;
+  margin: 20px 0;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  border: 1px solid rgba(0,0,0,0.05);
+}
+
+.no-favorites p {
+  margin-bottom: 24px;
+  color: #6c757d;
+  font-size: 18px;
+}
+
+table {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  background: #ffffff;
+}
+
+.character-image {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.character-image:hover {
+  transform: scale(1.1);
+}
+
+.mat-column-image {
+  width: 100px;
+  padding: 12px;
+}
+
+.mat-column-actions {
+  width: 140px;
+  text-align: center;
+}
+
+.mat-row {
+  transition: background-color 0.3s ease;
+}
+
+.mat-row:hover {
+  background-color: #f8f9fa;
+}
+
+td.mat-cell {
+  padding: 16px 12px;
+  color: #2c3e50;
+  font-size: 15px;
+}
+
+th.mat-header-cell {
+  padding: 16px 12px;
+  font-weight: 600;
+  color: #1976d2;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  background-color: #f8f9fa;
+}
+
+button[mat-icon-button] {
+  margin: 0 6px;
+  transition: transform 0.2s ease;
+}
+
+button[mat-icon-button]:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .favorites-container {
+    padding: 16px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .character-image {
+    width: 50px;
+    height: 50px;
+  }
+
+  td.mat-cell,
+  th.mat-header-cell {
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+
+  .mat-column-type,
+  .mat-column-gender {
+    display: none;
+  }
+}

@@ -1,0 +1,32 @@
+<div class="totals-container">
+  <mat-card>
+    <mat-card-content>
+      <div class="stats-grid">
+        <div class="stat-item">
+          <mat-icon>people</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">{{ totalCharacters }}</span>
+            <span class="stat-label">Total Personajes</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <mat-icon>favorite</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">{{ totalFavorites() }}</span>
+            <span class="stat-label">Favoritos</span>
+          </div>
+        </div>
+
+        <div class="stat-item">
+          <mat-icon>filter_list</mat-icon>
+          <div class="stat-content">
+            <span class="stat-value">{{ getItemsPerPage() }}</span>
+            <span class="stat-label">Por Página</span>
+            <span class="stat-range">{{ getDisplayRange() }}</span>
+          </div>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

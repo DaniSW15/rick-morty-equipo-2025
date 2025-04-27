@@ -1,0 +1,23 @@
+<div class="character-card" *ngIf="character" (click)="onViewDetails($event)">
+  <div class="card-header">
+    <img [src]="character.image" [alt]="character.name" class="character-image">
+    <button mat-icon-button class="favorite-button"
+      (click)="onToggleFavorite($event)"
+      [color]="isFavorite() ? 'warn' : ''">
+      <mat-icon>{{ isFavorite() ? 'favorite' : 'favorite_border' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="card-content">
+    <h2 class="character-name">{{ character.name }}</h2>
+
+    <div class="character-stats">
+      <div *ngFor="let stat of getCharacterStats()" class="stat-item">
+        <span class="stat-label">{{stat.label}}:</span>
+        <span class="stat-value">
+          {{stat.value | translate:'status'}}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>

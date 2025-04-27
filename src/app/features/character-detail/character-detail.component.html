@@ -1,0 +1,64 @@
+<div class="character-detail">
+  <!-- Header -->
+  <div class="detail-header">
+    <h2>{{ character?.name || 'Desconocido' }}</h2>
+    <button mat-icon-button (click)="closeDialog()" *ngIf="!isDrawer">
+      <mat-icon>close</mat-icon>
+    </button>
+    <button mat-icon-button [color]="isFavorite() ? 'warn' : ''" (click)="onToggleFavorite()"
+      [matTooltip]="isFavorite() ? 'Quitar de favoritos' : 'Agregar a favoritos'">
+      <mat-icon>{{ isFavorite() ? 'favorite' : 'favorite_border' }}</mat-icon>
+    </button>
+  </div>
+
+  <div class="loading-container" *ngIf="loading()">
+    <app-loading></app-loading>
+  </div>
+
+  <!-- Image and Status -->
+  <div class="image-container">
+    <img [src]="character?.image || 'assets/images/placeholder.png'" [alt]="character?.name || 'Unknown'" class="character-image">
+    <div class="status-badge" [class]="(character?.status || 'unknown').toLowerCase()">
+      {{ (character?.status || 'unknown') | translate:'status' }}
+    </div>
+  </div>
+
+  <!-- Info Grid -->
+  <div class="info-grid">
+    <div class="info-item">
+      <span class="label">Especie</span>
+      <span class="value">{{ (character?.species || 'unknown') | translate:'species' | emptyValue }}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Género</span>
+      <span class="value">{{ character?.gender || 'unknown' | translate:'gender' | emptyValue }}</span>
+    </div>
+    <div class="info-item" *ngIf="character?.type">
+      <span class="label">Tipo</span>
+      <span class="value">{{ character?.type || 'Sin tipo' | translate:'type' | emptyValue }}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Origen</span>
+      <span class="value">{{ originLocation().name || 'Desconocido' | emptyValue }}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Ubicación</span>
+      <span class="value">{{ currentLocation().name || 'Desconocido' | emptyValue }}</span>
+    </div>
+    <div class="info-item">
+      <span class="label">Creado</span>
+      <span class="value">{{ character?.created | date: 'yyyy-MM-dd' | emptyValue }}</span>
+    </div>
+  </div>
+
+  <!-- Episodes -->
+  <div class="episodes-section">
+    <h3>Episodio</h3>
+    <div class="episode-info" *ngIf="firstEpisode()">
+      <p><strong>Nombre:</strong> {{ firstEpisode()?.name || 'Desconocido' | emptyValue }}</p>
+      <p><strong>Episodio:</strong> {{ firstEpisode()?.episode || 'Desconocido' | emptyValue }}</p>
+      <p><strong>Fecha de emisión:</strong> {{ firstEpisode()?.air_date || 'Fecha desconocida' | emptyValue }}</p>
+    </div>
+    <p *ngIf="!firstEpisode()" class="no-episodes">No hay episodios disponibles</p>
+  </div>
+</div>

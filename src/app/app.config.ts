@@ -1,8 +1,80 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
+import { APOLLO_OPTIONS, Apollo } from 'apollo-angular';
+import { HttpLink } from 'apollo-angular/http';
+import { InMemoryCache } from '@apollo/client/core';
+import { provideStore } from '@ngrx/store';
+import { provideEffects } from '@ngrx/effects';
+import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
+import { characterReducer } from './state/store/character-store/character.reducer';
+import { CharacterEffects } from './state/store/character-store/character.effects';
+import { CharacterGraphqlService } from './core/services/api/character-graphql.service';
+import { initializeCharacterService } from './state/signals/character.signal';
+import { loadFavoritesFromStorage } from './state/signals/favorites.signal';
+import { CHARACTER_DATA_SOURCE } from './core/services/api/character-data-source.token';
+import { TotalsService } from './core/services/totals.service';
+import { FavoritesService } from './core/services/favorites.service';
+import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
+import { ErrorInterceptor } from './core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideZoneChangeDetection({ eventCoalescing: true }), provideRouter(routes)]
+  providers: [
+    provideRouter(routes),
+    provideAnimations(),
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: LoadingInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
+      multi: true
+    },
+    provideHttpClient(),
+    provideStore({
+      character: characterReducer
+    }),
+    provideEffects([CharacterEffects]),
+    provideStoreDevtools({
+      maxAge: 25,
+      logOnly: false,
+      autoPause: true,
+      trace: false,
+      traceLimit: 75,
+    }),
+    {
+      provide: APOLLO_OPTIONS,
+      useFactory: (httpLink: HttpLink) => ({
+        cache: new InMemoryCache(),
+        link: httpLink.create({
+          uri: 'https://rickandmortyapi.com/graphql'
+        })
+      }),
+      deps: [HttpLink]
+    },
+    Apollo,
+    CharacterGraphqlService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (service: CharacterGraphqlService) => {
+        return () => {
+          initializeCharacterService(service);
+          loadFavoritesFromStorage();
+        };
+      },
+      deps: [CharacterGraphqlService],
+      multi: true
+    },
+    {
+      provide: CHARACTER_DATA_SOURCE,
+      useExisting: CharacterGraphqlService
+    },
+    TotalsService,
+    FavoritesService
+  ]
 };

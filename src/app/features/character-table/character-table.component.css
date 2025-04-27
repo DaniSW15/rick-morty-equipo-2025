@@ -1,0 +1,251 @@
+/* Layout principal */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 84px 24px 24px;
+  background: #f5f5f5;
+  min-height: calc(100vh - 64px);
+}
+
+.content-wrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Filtros y controles */
+.filters-container {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filters-group {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.filter-field {
+  width: 100%;
+}
+
+.filters-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.view-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Tabla de personajes */
+.table-container {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.character-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Encabezados de tabla */
+.mat-mdc-header-cell {
+  background: #fafafa;
+  color: rgba(0, 0, 0, 0.87);
+  font-weight: 600;
+  font-size: 14px;
+  padding: 16px;
+  white-space: nowrap;
+  border-bottom: 2px solid rgba(0, 0, 0, 0.12);
+}
+
+/* Celdas de tabla */
+.mat-mdc-cell {
+  padding: 12px 16px;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.87);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  vertical-align: middle;
+}
+
+/* Columna de imagen */
+.mat-column-image {
+  width: 60px;
+  padding: 8px !important;
+}
+
+.character-avatar {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease;
+}
+
+/* Efectos hover */
+.mat-mdc-row {
+  transition: background-color 0.2s ease;
+}
+
+.mat-mdc-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+}
+
+.mat-mdc-row:hover .character-avatar {
+  transform: scale(1.1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Badge de estado */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  text-transform: capitalize;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-badge.alive { background: rgba(76, 175, 80, 0.9); }
+.status-badge.dead { background: rgba(244, 67, 54, 0.9); }
+.status-badge.unknown { background: rgba(158, 158, 158, 0.9); }
+
+/* Vista de grid */
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.character-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.character-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.card-image {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+}
+
+.card-content {
+  padding: 16px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 500;
+  margin: 0 0 8px;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.card-info {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.6);
+  margin-bottom: 4px;
+}
+
+/* Estados de carga y error */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+}
+
+.error-container {
+  text-align: center;
+  padding: 32px;
+  color: #f44336;
+}
+
+/* Paginación */
+.paginator {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 8px;
+  margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .main-content {
+    padding: 74px 16px 16px;
+  }
+
+  .filters-container {
+    padding: 16px;
+  }
+
+  .filters-group {
+    grid-template-columns: 1fr;
+  }
+
+  .mat-column-type,
+  .mat-column-created {
+    display: none;
+  }
+
+  .mat-mdc-header-cell,
+  .mat-mdc-cell {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  .character-avatar {
+    width: 35px;
+    height: 35px;
+  }
+
+  .status-badge {
+    padding: 4px 8px;
+    font-size: 11px;
+  }
+
+  .grid-container {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+}
