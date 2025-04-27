@@ -8,41 +8,44 @@
     </app-character-detail>
   </mat-drawer>
 
-  <mat-drawer-content>
-    <div class="container">
+  <mat-drawer-content class="main-content">
+    <div class="content-wrapper">
       <!-- Totals Section -->
       <app-totals [totalCharacters]="pagination().totalItems"></app-totals>
 
       <!-- Filters Section -->
       <div class="filters-container">
-        <app-filter-form
-          [filters]="filters()"
-          (nameChange)="onFilterChange('name', $event)"
-          (speciesChange)="onFilterChange('species', $event)"
-          (statusChange)="onFilterChange('status', $event)"
-          (genderChange)="onFilterChange('gender', $event)"
-          (clearFilters)="clearFilters()">
-        </app-filter-form>
+        <div class="filters-group">
+          <app-filter-form
+            [filters]="filters()"
+            (nameChange)="onFilterChange('name', $event)"
+            (speciesChange)="onFilterChange('species', $event)"
+            (statusChange)="onFilterChange('status', $event)"
+            (genderChange)="onFilterChange('gender', $event)"
+            (clearFilters)="clearFilters()">
+          </app-filter-form>
+        </div>
 
-        <!-- View Toggle -->
-        <div class="view-toggle">
-          <button mat-icon-button
-            [color]="!isGridView() ? 'primary' : 'default'"
-            (click)="toggleView()"
-            matTooltip="Vista de tabla">
-            <mat-icon>view_list</mat-icon>
-          </button>
-          <button mat-icon-button
-            [color]="isGridView() ? 'primary' : 'default'"
-            (click)="toggleView()"
-            matTooltip="Vista de cuadrícula">
-            <mat-icon>grid_view</mat-icon>
-          </button>
+        <div class="filters-actions">
+          <div class="view-toggle">
+            <button mat-icon-button
+              [color]="!isGridView() ? 'primary' : 'default'"
+              (click)="toggleView()"
+              matTooltip="Vista de tabla">
+              <mat-icon>view_list</mat-icon>
+            </button>
+            <button mat-icon-button
+              [color]="isGridView() ? 'primary' : 'default'"
+              (click)="toggleView()"
+              matTooltip="Vista de cuadrícula">
+              <mat-icon>grid_view</mat-icon>
+            </button>
+          </div>
         </div>
       </div>
 
       <!-- Content Container -->
-      <div class="content-container">
+      <div class="table-content">
         <!-- Grid View -->
         <div class="grid-container" *ngIf="isGridView()">
           <app-character-card
@@ -134,12 +137,14 @@
       </div>
 
       <!-- Pagination -->
-      <mat-paginator
-        [length]="pagination().totalItems"
-        [pageSize]="pagination().itemsPerPage"
-        [pageIndex]="pagination().currentPage - 1"
-        (page)="onPageChange($event)">
-      </mat-paginator>
+      <div class="pagination-container">
+        <mat-paginator
+          [length]="pagination().totalItems"
+          [pageSize]="pagination().itemsPerPage"
+          [pageIndex]="pagination().currentPage - 1"
+          (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
     </div>
   </mat-drawer-content>
 </mat-drawer-container>
