@@ -77,3 +77,29 @@ export const GET_CHARACTER = gql`
     }
   }
 `;
+
+export const GET_LOCATION = gql`
+  query GetLocation($id: ID!) {
+    location(id: $id) {
+      id
+      name
+      type
+      dimension
+      residents
+      created
+    }
+  }
+`;
+
+export const GET_EPISODE = gql`
+  query GetEpisode($id: ID!) {
+    episode(id: $id) {
+      id
+      name
+      air_date
+      episode
+      characters
+      created
+    }
+  }
+`;

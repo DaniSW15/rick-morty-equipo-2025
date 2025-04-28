@@ -1,39 +1,42 @@
 import { Pipe, PipeTransform } from '@angular/core';
 
-type TranslationType = 'status' | 'species' | 'gender' | 'type';
-
 @Pipe({
   name: 'translate',
   standalone: true
 })
 export class TranslatePipe implements PipeTransform {
-  private readonly translations = {
+  private translations: { [key: string]: { [key: string]: string } } = {
     status: {
-      'Alive': 'Vivo',
-      'Dead': 'Muerto',
-      'unknown': 'Desconocido'
-    },
-    species: {
-      'Human': 'Humano',
-      'Humanoid': 'Humanoide',
-      'Alien': 'Alienígena',
-      'Robot': 'Robot',
-      'Animal': 'Animal',
+      'alive': 'Vivo',
+      'dead': 'Muerto',
       'unknown': 'Desconocido'
     },
     gender: {
-      'Male': 'Masculino',
-      'Female': 'Femenino',
-      'Genderless': 'Sin género',
+      'female': 'Femenino',
+      'male': 'Masculino',
+      'genderless': 'Sin género',
       'unknown': 'Desconocido'
+    },
+    species: {
+      'human': 'Humano',
+      'alien': 'Alienígena',
+      'humanoid': 'Humanoide',
+      'poopybutthole': 'Poopybutthole',
+      'mythological': 'Mitológico',
+      'unknown': 'Desconocido',
+      'animal': 'Animal',
+      'disease': 'Enfermedad',
+      'robot': 'Robot',
+      'cronenberg': 'Cronenberg',
+      'planet': 'Planeta'
     }
   };
 
-  transform(value: string, type: TranslationType): string {
-    if (!value) return 'N/A';
-    if (type === 'type') return value || 'N/A';
+  transform(value: string | undefined | null, type: keyof typeof this.translations): string {
+    if (!value) return 'Desconocido';
 
-    const translations:any = this.translations[type];
-    return translations[value] || value;
+    const category = this.translations[type];
+    const key = value.toLowerCase();
+    return category[key] || value;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, ViewChild, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,17 +7,19 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
-import { Router, RouterModule } from '@angular/router';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatChipsModule } from '@angular/material/chips';
+import { RouterModule } from '@angular/router';
 import { Character } from '../../core/models/character.interface';
-import { CharacterGraphqlService } from '../../core/services/api/character-graphql.service';
+import { CharacterRestService } from '../../core/services/api/character-rest.service';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { FilterFormComponent } from './filters/filter-form/filter-form.component';
-import { LoadingComponent } from '../../shared/ui/loading/loading.component';
-import { CharacterCardComponent } from '../../shared/ui/character-card/character-card.component';
 import { CharacterDetailComponent } from '../character-detail/character-detail.component';
-import { TotalsComponent } from '../totals/totals.component';
+import { TotalsComponent } from "../totals/totals.component";
+import { lastValueFrom } from 'rxjs';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatCardModule } from '@angular/material/card';
 
 @Component({
   selector: 'app-character-table',
@@ -32,153 +34,113 @@ import { TotalsComponent } from '../totals/totals.component';
     MatDialogModule,
     MatProgressSpinnerModule,
     MatSidenavModule,
+    MatChipsModule,
     RouterModule,
     TranslatePipe,
     FilterFormComponent,
-    LoadingComponent,
-    CharacterCardComponent,
+    CharacterDetailComponent,
     TotalsComponent,
-    CharacterDetailComponent
+    MatFormFieldModule,
+    MatCardModule
   ],
   templateUrl: './character-table.component.html',
   styleUrls: ['./character-table.component.css']
 })
-export class CharacterTableComponent implements OnInit {
+export class CharacterTableComponent implements OnInit, OnDestroy {
+  // Signals para el estado
   characters = signal<Character[]>([]);
-  loading = signal(false);
   selectedCharacter = signal<Character | undefined>(undefined);
-  isGridView = signal<boolean>(false);
-  isDrawerMouseOver = signal(false);
-  displayedColumns = ['image', 'name', 'status', 'species', 'type', 'gender', 'created', 'actions'];
-  pagination = signal({
-    currentPage: 1,
-    itemsPerPage: 20,
-    totalItems: 0,
-    totalPages: 0
-  });
-  filters = signal({
-    name: '',
-    species: '',
-    status: '',
-    gender: ''
-  });
-
-  @ViewChild('drawer') drawer!: MatDrawer;
+  loading = signal<boolean>(false);
+  favorites = signal<number[]>([]);
+  currentPage = signal<number>(0);
+  pageSize = signal<number>(5);
+  totalItems = signal<number>(0);
+  currentFilters = signal<any>({});
 
   constructor(
-    private characterService: CharacterGraphqlService,
+    private characterService: CharacterRestService,
     private favoritesService: FavoritesService,
-    private router: Router
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadCharacters();
+    this.loadFavorites();
   }
 
-  loadCharacters(page: number = 1): void {
-    this.loading.set(true);
-    const filter = {
-      name: this.filters().name,
-      species: this.filters().species,
-      status: this.filters().status,
-      gender: this.filters().gender
-    };
+  async loadCharacters(filters: any = {}): Promise<void> {
+    try {
+      this.loading.set(true);
+      const response = await lastValueFrom(this.characterService.getAllCharacters(
+        this.currentPage() + 1,
+        filters.name,
+        filters.status,
+        this.pageSize()
+      ));
 
-    this.characterService.getAllCharacters(
-      page,
-      filter.name,
-      filter.status,
-      filter.species,
-      '',
-      filter.gender
-    ).subscribe({
-      next: (response) => {
-        this.characters.set(response.results);
-        this.pagination.set({
-          ...this.pagination(),
-          currentPage: page,
-          totalItems: response.info.count,
-          totalPages: response.info.pages
-        });
-        this.loading.set(false);
-      },
-      error: (error) => {
-        console.error('Error loading characters:', error);
-        this.characters.set([]);
-        this.pagination.set({
-          ...this.pagination(),
-          totalItems: 0,
-          totalPages: 0
-        });
-        this.loading.set(false);
-      }
-    });
+      this.characters.set(response.results);
+      this.totalItems.set(response.info.count);
+      this.currentFilters.set(filters);
+      this.loading.set(false);
+      this.cdr.detectChanges();
+    } catch (error) {
+      console.error('Error loading characters:', error);
+      this.loading.set(false);
+      this.cdr.detectChanges();
+    }
   }
 
-  onPageChange(event: PageEvent): void {
-    const newPage = event.pageIndex + 1;
-    this.pagination.set({
-      ...this.pagination(),
-      currentPage: newPage,
-      itemsPerPage: event.pageSize
-    });
-    this.loadCharacters(newPage);
-  }
-
-  toggleFavoriteCharacter(character: Character): void {
-    this.favoritesService.toggleFavorite(character);
-  }
-
-  isFavoriteCharacter(id: any): boolean {
-    return this.favoritesService.isFavorite(id);
-  }
-
-  toggleView(): void {
-    this.isGridView.update(current => !current);
-  }
-
-  getDataSource(): Character[] {
-    return this.characters();
-  }
-
-  onFilterChange(filterType: string, value: string): void {
-    this.filters.set({
-      ...this.filters(),
-      [filterType]: value
-    });
-    this.loadCharacters(1); // Reset to first page when filter changes
-  }
-
-  clearFilters(): void {
-    this.filters.set({
-      name: '',
-      species: '',
-      status: '',
-      gender: ''
-    });
-    this.loadCharacters(1);
-  }
-
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString();
+  loadFavorites(): void {
+    const favorites = this.favoritesService.getFavorites();
+    this.favorites.set(favorites);
   }
 
   selectCharacter(character: Character): void {
-    if (!character) return;
     this.selectedCharacter.set(character);
-    this.drawer.open();
   }
 
-  closeCharacterDetail(): void {
-    this.drawer.close();
-    this.selectedCharacter.set(undefined);
+  selectFavoriteCharacter(id: number): void {
+    const character = this.characters().find(c => c.id === id);
+    if (character) {
+      this.selectCharacter(character);
+    }
   }
 
-  onDrawerMouseEnter(): void {
-    this.isDrawerMouseOver.set(true);
+  getFavoriteCharacterName(id: number): string {
+    const character = this.characters().find(c => c.id === id);
+    return character?.name || `Character ${id}`;
   }
 
-  onDrawerMouseLeave(): void {
-    this.isDrawerMouseOver.set(false);
+  toggleFavorite(character: Character): void {
+    if (this.isFavorite(character.id)) {
+      this.favoritesService.removeFavorite(character.id);
+    } else {
+      this.favoritesService.addFavorite(character.id);
+    }
+    this.loadFavorites();
+  }
+
+  isFavorite(id: number): boolean {
+    return this.favorites().includes(id);
+  }
+
+  onFiltersChanged(filters: any): void {
+    this.currentPage.set(0);
+    this.loadCharacters(filters);
+  }
+
+  onClearFilters(): void {
+    this.currentPage.set(0);
+    this.loadCharacters();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.currentPage.set(event.pageIndex);
+    this.pageSize.set(event.pageSize);
+    this.loadCharacters(this.currentFilters());
+  }
+
+  ngOnDestroy(): void {
+    // No hay subscripciones que limpiar ya que usamos signals y lastValueFrom
   }
 }

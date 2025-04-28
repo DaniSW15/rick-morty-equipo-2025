@@ -14,6 +14,11 @@ export interface CharacterResponse {
 }
 
 export interface CharacterDataSource {
-  getAllCharacters(page?: number, name?: string, status?: string): Observable<CharacterResponse>;
+  getAllCharacters(
+    page?: number,
+    name?: string,
+    status?: string,
+    pageSize?: number
+  ): Observable<CharacterResponse>;
   getCharacterById(id: number): Observable<Character>;
 }

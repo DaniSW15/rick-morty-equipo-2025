@@ -1,139 +1,101 @@
-<mat-drawer-container class="drawer-container">
-  <mat-drawer #drawer mode="over" position="end" [autoFocus]="false">
-    <app-character-detail *ngIf="selectedCharacter()" [character]="selectedCharacter()" [isDrawer]="true"
-      (close)="closeCharacterDetail()">
-    </app-character-detail>
-  </mat-drawer>
-
-  <mat-drawer-content class="main-content">
-
-
-    <div class="content-wrapper">
-      <!-- Totals Section -->
-      <app-totals [totalCharacters]="pagination().totalItems"></app-totals>
-
-      <!-- Filters Section -->
-      <div class="filters-container">
-        <div class="filters-group">
-          <app-filter-form [filters]="filters()" (nameChange)="onFilterChange('name', $event)"
-            (speciesChange)="onFilterChange('species', $event)" (statusChange)="onFilterChange('status', $event)"
-            (genderChange)="onFilterChange('gender', $event)" (clearFilters)="clearFilters()">
-          </app-filter-form>
-        </div>
-
-        <div class="filters-actions">
-          <div class="view-toggle">
-            <button mat-icon-button [color]="!isGridView() ? 'primary' : 'default'" (click)="toggleView()"
-              matTooltip="Vista de tabla">
-              <mat-icon>view_list</mat-icon>
-            </button>
-            <button mat-icon-button [color]="isGridView() ? 'primary' : 'default'" (click)="toggleView()"
-              matTooltip="Vista de cuadrícula">
-              <mat-icon>grid_view</mat-icon>
-            </button>
-          </div>
-        </div>
+<div class="main-container">
+  <div class="content-wrapper">
+    <!-- Totales -->
+    <div class="totals-section">
+      <div class="species-totals">
+        <h3>Totales por Especie</h3>
+        <app-totals [type]="'species'" [characters]="characters()"></app-totals>
       </div>
-
-      <!-- Content Container -->
-      <div class="table-content">
-        <div class="loading-container" *ngIf="loading()">
-          <app-loading></app-loading>
-        </div>
-        <!-- Grid View -->
-        <div class="grid-container" *ngIf="isGridView()">
-          <app-character-card *ngFor="let character of characters()" [character]="character"
-            (click)="selectCharacter(character)">
-          </app-character-card>
-        </div>
-
-        <!-- Table View -->
-        <div class="table-container" *ngIf="!isGridView()">
-          <table mat-table [dataSource]="characters()" class="character-table">
-            <!-- Image Column -->
-            <ng-container matColumnDef="image">
-              <th mat-header-cell *matHeaderCellDef>Imagen</th>
-              <td mat-cell *matCellDef="let character">
-                <img [src]="character.image" [alt]="character.name" class="character-avatar">
-              </td>
-            </ng-container>
-
-            <!-- Name Column -->
-            <ng-container matColumnDef="name">
-              <th mat-header-cell *matHeaderCellDef>Nombre</th>
-              <td mat-cell *matCellDef="let character">{{ character.name }}</td>
-            </ng-container>
-
-            <!-- Status Column -->
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef>Estado</th>
-              <td mat-cell *matCellDef="let character">
-                <span class="status-badge" [class]="character.status.toLowerCase()">
-                  {{ character.status | translate:'status' }}
-                </span>
-              </td>
-            </ng-container>
-
-            <!-- Species Column -->
-            <ng-container matColumnDef="species">
-              <th mat-header-cell *matHeaderCellDef>Especie</th>
-              <td mat-cell *matCellDef="let character">
-                {{ character.species | translate:'species' }}
-              </td>
-            </ng-container>
-
-            <!-- Type Column -->
-            <ng-container matColumnDef="type">
-              <th mat-header-cell *matHeaderCellDef>Tipo</th>
-              <td mat-cell *matCellDef="let character">{{ character.type || '-' }}</td>
-            </ng-container>
-
-            <!-- Gender Column -->
-            <ng-container matColumnDef="gender">
-              <th mat-header-cell *matHeaderCellDef>Género</th>
-              <td mat-cell *matCellDef="let character">
-                {{ character.gender | translate:'gender' }}
-              </td>
-            </ng-container>
-
-            <!-- Created Column -->
-            <ng-container matColumnDef="created">
-              <th mat-header-cell *matHeaderCellDef>Creado</th>
-              <td mat-cell *matCellDef="let character">
-                {{ character.created | date:'mediumDate' }}
-              </td>
-            </ng-container>
-
-            <!-- Actions Column -->
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Acciones</th>
-              <td mat-cell *matCellDef="let character">
-                <button mat-icon-button color="primary" (click)="selectCharacter(character); $event.stopPropagation()"
-                  matTooltip="Ver detalles">
-                  <mat-icon>visibility</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let character; columns: displayedColumns" (click)="selectCharacter(character)"
-              [class.selected]="selectedCharacter()?.id === character.id">
-            </tr>
-          </table>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div class="loading-container" *ngIf="loading()">
-        <app-loading></app-loading>
-      </div>
-
-      <!-- Pagination -->
-      <div class="pagination-container">
-        <mat-paginator [length]="pagination().totalItems" [pageSize]="pagination().itemsPerPage"
-          [pageIndex]="pagination().currentPage - 1" (page)="onPageChange($event)">
-        </mat-paginator>
+      <div class="type-totals">
+        <h3>Totales por Tipo</h3>
+        <app-totals [type]="'type'" [characters]="characters()"></app-totals>
       </div>
     </div>
-  </mat-drawer-content>
-</mat-drawer-container>
+    <!-- Barra de favoritos -->
+    <div class="favorites-bar" *ngIf="favorites().length > 0">
+      <h3>Personajes Favoritos</h3>
+      <div class="favorite-chips">
+        <mat-chip-listbox>
+          <mat-chip-option *ngFor="let id of favorites()"
+                          [selected]="selectedCharacter()?.id === id"
+                          (click)="selectFavoriteCharacter(id)">
+            {{ getFavoriteCharacterName(id) }}
+          </mat-chip-option>
+        </mat-chip-listbox>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <app-filter-form
+      [loading]="loading()"
+      (filtersChanged)="onFiltersChanged($event)"
+      (clearFilters)="onClearFilters()">
+    </app-filter-form>
+
+    <div class="table-details-container">
+      <!-- Sección de la tabla -->
+      <div class="table-section">
+        <div class="table-container">
+          <table class="character-table">
+            <thead>
+              <tr>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Estado</th>
+                <th>Especie</th>
+                <th>Tipo</th>
+                <th>Género</th>
+                <th>Creado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let character of characters()"
+                  (click)="selectCharacter(character)"
+                  [class.selected]="selectedCharacter()?.id === character.id">
+                <td>
+                  <img [src]="character.image"
+                       [alt]="character.name"
+                       class="character-avatar">
+                </td>
+                <td>{{ character.name }}</td>
+                <td>
+                  <span class="status-badge" [class]="character.status.toLowerCase()">
+                    {{ character.status }}
+                  </span>
+                </td>
+                <td>{{ character.species }}</td>
+                <td>{{ character.type || '-' }}</td>
+                <td>{{ character.gender }}</td>
+                <td>{{ character.created | date:'mediumDate' }}</td>
+                <td>
+                  <button mat-icon-button
+                          [color]="isFavorite(character.id) ? 'warn' : ''"
+                          (click)="toggleFavorite(character); $event.stopPropagation()"
+                          [matTooltip]="isFavorite(character.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'">
+                    <mat-icon>{{ isFavorite(character.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Paginador -->
+          <mat-paginator
+            [length]="totalItems()"
+            [pageSize]="pageSize()"
+            [pageIndex]="currentPage()"
+            [pageSizeOptions]="[5, 10, 20, 50]"
+            (page)="onPageChange($event)"
+            aria-label="Seleccionar página">
+          </mat-paginator>
+        </div>
+      </div>
+
+      <!-- Sección de detalles -->
+      <div class="details-section" *ngIf="selectedCharacter()">
+        <app-character-detail [character]="selectedCharacter()"></app-character-detail>
+      </div>
+    </div>
+  </div>
+</div>

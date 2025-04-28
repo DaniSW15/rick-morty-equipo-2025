@@ -1,64 +1,130 @@
-<div class="character-detail">
-  <!-- Header -->
-  <div class="detail-header">
-    <h2>{{ character?.name || 'Desconocido' }}</h2>
-    <button mat-icon-button (click)="closeDialog()" *ngIf="!isDrawer">
+<div class="character-details" [class.drawer]="isDrawer">
+  <!-- Header con información básica -->
+  <div class="character-header" *ngIf="character">
+    <img [src]="character.image" [alt]="character.name" class="character-image">
+    <div class="character-info">
+      <h2>{{ character.name }}</h2>
+      <div class="status-species">
+        <span class="status-badge" [class]="character.status.toLowerCase()">
+          {{ character.status }}
+        </span>
+        <span>{{ character.species }}</span>
+      </div>
+    </div>
+    <button mat-icon-button class="close-button" *ngIf="isDrawer" (click)="close.emit()">
       <mat-icon>close</mat-icon>
     </button>
-    <button mat-icon-button [color]="isFavorite() ? 'warn' : ''" (click)="onToggleFavorite()"
-      [matTooltip]="isFavorite() ? 'Quitar de favoritos' : 'Agregar a favoritos'">
-      <mat-icon>{{ isFavorite() ? 'favorite' : 'favorite_border' }}</mat-icon>
+  </div>
+
+  <!-- Estado de carga -->
+  <div class="loading-state" *ngIf="isLoading">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Cargando detalles...</p>
+  </div>
+
+  <!-- Estado de error -->
+  <div class="error-state" *ngIf="error">
+    <mat-icon color="warn">error_outline</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-button color="primary" (click)="reloadDetails()">
+      Reintentar
     </button>
   </div>
 
-  <div class="loading-container" *ngIf="loading()">
-    <app-loading></app-loading>
-  </div>
+  <!-- Detalles del personaje -->
+  <ng-container *ngIf="!isLoading && !error && (characterDetails$ | async) as details">
+    <!-- Origen -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>home</mat-icon>
+          Origen
+        </mat-panel-title>
+      </mat-expansion-panel-header>
 
-  <!-- Image and Status -->
-  <div class="image-container">
-    <img [src]="character?.image || 'assets/images/placeholder.png'" [alt]="character?.name || 'Unknown'" class="character-image">
-    <div class="status-badge" [class]="(character?.status || 'unknown').toLowerCase()">
-      {{ (character?.status || 'unknown') | translate:'status' }}
-    </div>
-  </div>
+      <ng-container *ngIf="details.origin; else unknownOrigin">
+        <div class="location-info">
+          <h3>{{ details.origin.name }}</h3>
+          <p><strong>Tipo:</strong> {{ details.origin.type || 'Desconocido' }}</p>
+          <p><strong>Dimensión:</strong> {{ details.origin.dimension || 'Desconocida' }}</p>
 
-  <!-- Info Grid -->
-  <div class="info-grid">
-    <div class="info-item">
-      <span class="label">Especie</span>
-      <span class="value">{{ (character?.species || 'unknown') | translate:'species' | emptyValue }}</span>
-    </div>
-    <div class="info-item">
-      <span class="label">Género</span>
-      <span class="value">{{ character?.gender || 'unknown' | translate:'gender' | emptyValue }}</span>
-    </div>
-    <div class="info-item" *ngIf="character?.type">
-      <span class="label">Tipo</span>
-      <span class="value">{{ character?.type || 'Sin tipo' | translate:'type' | emptyValue }}</span>
-    </div>
-    <div class="info-item">
-      <span class="label">Origen</span>
-      <span class="value">{{ originLocation().name || 'Desconocido' | emptyValue }}</span>
-    </div>
-    <div class="info-item">
-      <span class="label">Ubicación</span>
-      <span class="value">{{ currentLocation().name || 'Desconocido' | emptyValue }}</span>
-    </div>
-    <div class="info-item">
-      <span class="label">Creado</span>
-      <span class="value">{{ character?.created | date: 'yyyy-MM-dd' | emptyValue }}</span>
-    </div>
-  </div>
+          <ng-container *ngIf="details.origin.residents && details.origin.residents.length > 0; else noResidents">
+            <div class="residents">
+              <h4>Residentes:</h4>
+              <ul>
+                <li *ngFor="let resident of details.origin.residents">
+                  {{ resident.name }}
+                </li>
+              </ul>
+              <p *ngIf="details.origin.totalResidents && details.origin.totalResidents > details.origin.residents.length">
+                Y {{ details.origin.totalResidents - details.origin.residents.length }} más...
+              </p>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </mat-expansion-panel>
 
-  <!-- Episodes -->
-  <div class="episodes-section">
-    <h3>Episodio</h3>
-    <div class="episode-info" *ngIf="firstEpisode()">
-      <p><strong>Nombre:</strong> {{ firstEpisode()?.name || 'Desconocido' | emptyValue }}</p>
-      <p><strong>Episodio:</strong> {{ firstEpisode()?.episode || 'Desconocido' | emptyValue }}</p>
-      <p><strong>Fecha de emisión:</strong> {{ firstEpisode()?.air_date || 'Fecha desconocida' | emptyValue }}</p>
-    </div>
-    <p *ngIf="!firstEpisode()" class="no-episodes">No hay episodios disponibles</p>
-  </div>
+    <!-- Localización actual -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>place</mat-icon>
+          Ubicación Actual
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <ng-container *ngIf="details.location; else unknownLocation">
+        <div class="location-info">
+          <h3>{{ details.location.name }}</h3>
+          <p><strong>Tipo:</strong> {{ details.location.type || 'Desconocido' }}</p>
+          <p><strong>Dimensión:</strong> {{ details.location.dimension || 'Desconocida' }}</p>
+
+          <ng-container *ngIf="details.location.residents && details.location.residents.length > 0; else noResidents">
+            <div class="residents">
+              <h4>Residentes:</h4>
+              <ul>
+                <li *ngFor="let resident of details.location.residents">
+                  {{ resident.name }}
+                </li>
+              </ul>
+              <p *ngIf="details.location.totalResidents && details.location.totalResidents > details.location.residents.length">
+                Y {{ details.location.totalResidents - details.location.residents.length }} más...
+              </p>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+    </mat-expansion-panel>
+
+    <!-- Episodio -->
+    <mat-expansion-panel>
+      <mat-expansion-panel-header>
+        <mat-panel-title>
+          <mat-icon>movie</mat-icon>
+          Episodio Destacado
+        </mat-panel-title>
+      </mat-expansion-panel-header>
+
+      <div class="episode-info" *ngIf="details.episode">
+        <h3>{{ details.episode.name }}</h3>
+        <p><strong>Episodio:</strong> {{ details.episode.episode }}</p>
+        <p><strong>Fecha de emisión:</strong> {{ details.episode.air_date }}</p>
+      </div>
+      <p *ngIf="!details.episode" class="no-data">No hay episodios disponibles</p>
+    </mat-expansion-panel>
+
+    <!-- Templates para estados vacíos -->
+    <ng-template #unknownOrigin>
+      <p class="no-data">Origen desconocido</p>
+    </ng-template>
+
+    <ng-template #unknownLocation>
+      <p class="no-data">Ubicación desconocida</p>
+    </ng-template>
+
+    <ng-template #noResidents>
+      <p class="no-data">No hay residentes conocidos</p>
+    </ng-template>
+  </ng-container>
 </div>

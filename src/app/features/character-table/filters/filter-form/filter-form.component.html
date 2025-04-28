@@ -3,6 +3,7 @@
   <mat-form-field appearance="outline">
     <mat-label>Nombre</mat-label>
     <input matInput formControlName="name" placeholder="Buscar por nombre">
+    <mat-spinner matSuffix diameter="20" *ngIf="loading"></mat-spinner>
     <button mat-icon-button matSuffix *ngIf="filterForm.get('name')?.value"
       (click)="filterForm.get('name')?.reset()">
       <mat-icon>close</mat-icon>
@@ -13,6 +14,7 @@
   <mat-form-field appearance="outline">
     <mat-label>Especie</mat-label>
     <input matInput formControlName="species" placeholder="Buscar por especie">
+    <mat-spinner matSuffix diameter="20" *ngIf="loading"></mat-spinner>
     <button mat-icon-button matSuffix *ngIf="filterForm.get('species')?.value"
       (click)="filterForm.get('species')?.reset()">
       <mat-icon>close</mat-icon>
@@ -28,6 +30,7 @@
       <mat-option value="dead">Muerto</mat-option>
       <mat-option value="unknown">Desconocido</mat-option>
     </mat-select>
+    <mat-spinner matSuffix diameter="20" *ngIf="loading"></mat-spinner>
   </mat-form-field>
 
   <!-- Gender Filter -->
@@ -40,6 +43,7 @@
       <mat-option value="genderless">Sin género</mat-option>
       <mat-option value="unknown">Desconocido</mat-option>
     </mat-select>
+    <mat-spinner matSuffix diameter="20" *ngIf="loading"></mat-spinner>
   </mat-form-field>
 
   <!-- Clear Filters -->

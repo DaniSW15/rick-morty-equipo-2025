@@ -1,48 +1,51 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
+import { Character } from '../../core/models/character.interface';
 
-import {
-  favoritesCount
-} from '../../state/signals/favorites.signal';
+interface TotalItem {
+  name: string;
+  count: number;
+}
 
 @Component({
   selector: 'app-totals',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatCardModule,
-    MatIconModule
-  ],
+  imports: [CommonModule, MatCardModule, MatIconModule],
   templateUrl: './totals.component.html',
   styleUrls: ['./totals.component.css']
 })
-export class TotalsComponent {
-  @Input() totalCharacters: number = 0;
-  readonly totalFavorites = favoritesCount;
+export class TotalsComponent implements OnInit, OnChanges {
+  @Input() characters: Character[] = [];
+  @Input() type: 'species' | 'type' = 'species';
 
-  // Valores por defecto para asegurar que siempre hay algo que mostrar
-  getItemsPerPage(): number {
-    return 20;
+  totals: TotalItem[] = [];
+
+  ngOnInit(): void {
+    this.calculateTotals();
   }
 
-  getTotalItems(): number {
-    return this.totalCharacters;
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['characters'] || changes['type']) {
+      this.calculateTotals();
+    }
   }
 
-  getCurrentPage(): number {
-    return 1;
-  }
+  private calculateTotals(): void {
+    if (!this.characters.length) {
+      this.totals = [];
+      return;
+    }
 
-  getDisplayRange(): string {
-    const itemsPerPage = this.getItemsPerPage();
-    const currentPage = this.getCurrentPage();
-    const totalItems = this.getTotalItems();
+    const counts = this.characters.reduce((acc, char) => {
+      const value = this.type === 'species' ? char.species : (char.type || 'Unknown');
+      acc[value] = (acc[value] || 0) + 1;
+      return acc;
+    }, {} as { [key: string]: number });
 
-    const start = (currentPage - 1) * itemsPerPage + 1;
-    const end = Math.min(currentPage * itemsPerPage, totalItems);
-
-    return `${start} - ${end} de ${totalItems}`;
+    this.totals = Object.entries(counts)
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
   }
 }

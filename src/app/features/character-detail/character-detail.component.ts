@@ -1,222 +1,155 @@
-import { Component, Input, Output, EventEmitter, OnInit, WritableSignal, signal, HostBinding } from '@angular/core';
+import { Component, Input, Output, EventEmitter, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { ActivatedRoute, Router } from '@angular/router';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Observable, of, BehaviorSubject, Subject, takeUntil } from 'rxjs';
+import { map, catchError, tap, switchMap } from 'rxjs/operators';
+import { TranslatePipe } from '../../core/pipes/translate.pipe';
 import { Character } from '../../core/models/character.interface';
-import { Location } from '../../core/models/location.interface';
+import { LocationView, Location } from '../../core/models/location.interface';
 import { Episode } from '../../core/models/episode.interface';
-import { TranslatePipe } from "../../core/pipes/translate.pipe";
-import { EmptyValuePipe } from "../../core/pipes/empty-value.pipe";
 import { CharacterGraphqlService } from '../../core/services/api/character-graphql.service';
-import { LoadingComponent } from "../../shared/ui/loading/loading.component";
+import { CharacterRestService } from '../../core/services/api/character-rest.service';
 import { FavoritesService } from '../../core/services/favorites.service';
-import { of } from 'rxjs';
-import { catchError, finalize, map, switchMap } from 'rxjs/operators';
+import { MatExpansionModule } from '@angular/material/expansion';
+
+interface CharacterDetailsView {
+  origin: LocationView;
+  location: LocationView;
+  episode: Episode | null;
+}
 
 @Component({
   selector: 'app-character-detail',
+  templateUrl: './character-detail.component.html',
+  styleUrls: ['./character-detail.component.css'],
   standalone: true,
   imports: [
     CommonModule,
-    MatIconModule,
     MatButtonModule,
-    MatTooltipModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
     TranslatePipe,
-    EmptyValuePipe,
-    LoadingComponent
-  ],
-  templateUrl: './character-detail.component.html',
-  styleUrls: ['./character-detail.component.css']
+    MatExpansionModule
+  ]
 })
-export class CharacterDetailComponent implements OnInit {
-  @Input() character?: Character;
+export class CharacterDetailComponent implements OnDestroy {
+  private destroy$ = new Subject<void>();
+  private characterSubject = new BehaviorSubject<Character | undefined>(undefined);
+
+  @Input() set character(value: Character | undefined) {
+    if (value?.id !== this.characterSubject.value?.id) {
+      this.characterSubject.next(value);
+      this.cdr.detectChanges();
+    }
+  }
+  get character(): Character | undefined {
+    return this.characterSubject.value;
+  }
+
   @Input() isDrawer = false;
   @Output() close = new EventEmitter<void>();
-  @Output() toggleFavorite = new EventEmitter<Character>();
 
-  @HostBinding('class')
-  get hostClass(): string {
-    return this.isDrawer ? 'drawer' : 'standalone';
-  }
+  isLoading = false;
+  error: string | null = null;
+  useGraphQL = false;
 
-  loading: WritableSignal<boolean> = signal(false);
-  error: WritableSignal<string | null> = signal(null);
+  characterDetails$: Observable<CharacterDetailsView | null> = this.characterSubject.pipe(
+    switchMap((character: Character | undefined) => {
+      if (!character) return of(null);
+      this.isLoading = true;
+      this.error = null;
+      this.cdr.detectChanges();
 
-  originLocation: WritableSignal<Location> = signal(this.createEmptyLocation('origen'));
-  currentLocation: WritableSignal<Location> = signal(this.createEmptyLocation('actual'));
-  firstEpisode: WritableSignal<Episode | null> = signal(null);
+      return (this.useGraphQL ? this.graphqlService.getCharacterById(character.id) : this.restService.getCharacterById(character.id))
+        .pipe(
+          map((details: Character) => {
+            const originView: LocationView = {
+              id: details.origin.id,
+              name: details.origin.name,
+              type: details.origin.type,
+              dimension: details.origin.dimension,
+              url: details.origin.url,
+              created: details.origin.created,
+              residents: details.origin.residents?.map((r:any) => ({
+                id: r.id,
+                name: r.name
+              })),
+              totalResidents: details.origin.residents?.length || 0
+            };
+
+            const locationView: LocationView = {
+              id: details.location.id,
+              name: details.location.name,
+              type: details.location.type,
+              dimension: details.location.dimension,
+              url: details.location.url,
+              created: details.location.created,
+              residents: details.location.residents?.map((r: any) => ({
+                id: r.id,
+                name: r.name
+              })),
+              totalResidents: details.location.residents?.length || 0
+            };
+
+            return {
+              origin: originView,
+              location: locationView,
+              episode: Array.isArray(details.episode) && details.episode.length > 0
+                ? details.episode[0] as Episode
+                : null
+            };
+          }),
+          tap(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          }),
+          catchError(error => {
+            console.error('Error loading details:', error);
+            this.error = 'Error al cargar los detalles del personaje';
+            this.isLoading = false;
+            this.cdr.detectChanges();
+            return of(null);
+          })
+        );
+    }),
+    takeUntil(this.destroy$)
+  );
 
   constructor(
-    private characterService: CharacterGraphqlService,
-    private favoriteService: FavoritesService,
-    private route: ActivatedRoute,
-    private router: Router
-  ) { }
+    private graphqlService: CharacterGraphqlService,
+    private restService: CharacterRestService,
+    private favoritesService: FavoritesService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
-  ngOnInit(): void {
-    this.route.params.subscribe(params => {
-      const id = params['id'];
-      if (id) {
-        this.loading.set(true);
-        this.characterService.getCharacterById(id)
-          .pipe(
-            catchError((err) => {
-              console.error('Error loading character:', err);
-              return of({
-                id: 0,
-                name: 'Personaje no encontrado',
-                status: 'unknown',
-                species: 'Unknown',
-                type: '',
-                gender: 'unknown',
-                origin: { name: 'Unknown', url: '' },
-                location: { name: 'Unknown', url: '' },
-                image: 'assets/images/placeholder.png',
-                episode: [],
-                url: '',
-                created: new Date().toISOString()
-              } as Character);
-            }),
-            finalize(() => this.loading.set(false))
-          )
-          .subscribe(character => {
-            this.character = character;
-            this.loadOriginLocation();
-            this.loadCurrentLocation();
-            this.loadFirstEpisode();
-          });
-      }
-    });
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
-  private loadCharacterDetails(): void {
-    if (!this.character) {
-      this.error.set('No se encontró información del personaje');
-      return;
-    }
-
-    try {
-      this.loadOriginLocation();
-      this.loadCurrentLocation();
-      this.loadFirstEpisode();
-    } catch (err) {
-      console.error('Error initializing character detail:', err);
-      this.error.set('Error cargando los detalles del personaje');
-      this.loading.set(false);
-    }
+  isFavorite(id: number): boolean {
+    return this.favoritesService.isFavorite(id);
   }
 
-  private loadOriginLocation(): void {
-    const originUrl = this.character?.origin?.url;
-    const originId = originUrl ? this.extractIdFromUrl(originUrl) : null;
-
-    if (originId) {
-      this.characterService.getLocation(originId)
-        .pipe(
-          catchError((err) => {
-            console.error('Error loading origin location:', err);
-            return of(this.createEmptyLocation('origen'));
-          })
-        )
-        .subscribe(location => this.originLocation.set(location));
+  toggleFavorite(id: number): void {
+    if (this.isFavorite(id)) {
+      this.favoritesService.removeFavorite(id);
     } else {
-      this.originLocation.set(this.createEmptyLocation('origen'));
+      this.favoritesService.addFavorite(id);
+    }
+    this.cdr.detectChanges();
+  }
+
+  reloadDetails(): void {
+    const currentCharacter = this.characterSubject.value;
+    if (currentCharacter) {
+      this.characterSubject.next(currentCharacter);
     }
   }
 
-  private loadCurrentLocation(): void {
-    const locationUrl:any = this.character?.location?.url;
-    const locationId:any = locationUrl ? this.extractIdFromUrl(locationUrl) : null;
-
-    if (locationId) {
-      this.characterService.getLocation(locationId)
-        .pipe(
-          catchError((err) => {
-            console.error('Error loading current location:', err);
-            return of(this.createEmptyLocation('actual'));
-          })
-        )
-        .subscribe(location => this.currentLocation.set(location));
-    } else {
-      this.currentLocation.set(this.createEmptyLocation('actual'));
-    }
-  }
-
-  private loadFirstEpisode(): void {
-    if (this.character?.episode?.length) {
-      const firstEpisode = this.character.episode[0];
-      const episodeId = typeof firstEpisode === 'string'
-        ? this.extractIdFromUrl(firstEpisode)
-        : firstEpisode.id;
-
-      if (episodeId) {
-        this.characterService.getEpisode(episodeId)
-          .pipe(
-            catchError((err) => {
-              console.error('Error loading episode:', err);
-              return of(this.createEmptyEpisode());
-            })
-          )
-          .subscribe(episode => this.firstEpisode.set(episode));
-      } else {
-        this.firstEpisode.set(this.createEmptyEpisode());
-      }
-    } else {
-      this.firstEpisode.set(this.createEmptyEpisode());
-    }
-  }
-
-  private extractIdFromUrl(url: string | undefined): string | null {
-    if (!url) return null;
-    const matches = url.match(/\/(\d+)$/);
-    return matches ? matches[1] : null;
-  }
-
-  private createEmptyLocation(type: 'origen' | 'actual'): Location {
-    return {
-      id: 0,
-      name: `Ubicación ${type} desconocida`,
-      type: 'Unknown',
-      dimension: 'Unknown',
-      residents: [],
-      url: '',
-      created: new Date().toISOString()
-    };
-  }
-
-  private createEmptyEpisode(): Episode {
-    return {
-      id: 0,
-      name: 'Episodio desconocido',
-      air_date: 'Desconocida',
-      episode: 'S00E00',
-      characters: [{
-        id: 0,
-        name: 'Sin información',
-        image: 'assets/images/placeholder.png'
-      }],
-      url: '',
-      created: new Date().toISOString()
-    };
-  }
-
-  isFavorite(): boolean {
-    return this.character ? this.favoriteService.isFavorite(this.character.id) : false;
-  }
-
-  onToggleFavorite(): void {
-    if (this.character) {
-      this.toggleFavorite.emit(this.character);
-    }
-  }
-
-  closeDialog(): void {
-    if (this.close.observed) {
-      this.close.emit();
-    } else {
-      this.router.navigate(['/characters']);
-    }
+  onClose(): void {
+    this.close.emit();
   }
 }

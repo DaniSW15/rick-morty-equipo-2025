@@ -1,43 +1,71 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
+import { map, distinctUntilChanged, shareReplay } from 'rxjs/operators';
 import { Character } from '../models/character.interface';
-import { favoritesSignal, toggleFavorite, isFavorite, clearFavorites, loadFavoritesFromStorage } from '../../state/signals/favorites.signal';
 
 @Injectable({
   providedIn: 'root'
 })
 export class FavoritesService {
-  private readonly STORAGE_KEY = 'favorite_characters';
-  private favoritesSubject = new BehaviorSubject<number[]>([]);
+  private readonly STORAGE_KEY = 'favorites';
+  private favoritesSubject = new BehaviorSubject<number[]>(this.loadFavorites());
 
-  favorites$ = this.favoritesSubject.asObservable();
+  favorites$ = this.favoritesSubject.pipe(
+    distinctUntilChanged((prev, curr) =>
+      prev.length === curr.length &&
+      prev.every((id, i) => id === curr[i])
+    ),
+    shareReplay(1)
+  );
 
   constructor() {
-    // Cargar favoritos al iniciar el servicio
-    loadFavoritesFromStorage();
-    // Sincronizar el BehaviorSubject con el signal
-    this.favoritesSubject.next(favoritesSignal());
+    this.loadFavorites();
   }
 
-  toggleFavorite(character: Character): void {
-    toggleFavorite(character);
-    this.favoritesSubject.next(favoritesSignal());
+  private loadFavorites(): number[] {
+    const stored = localStorage.getItem(this.STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  }
+
+  addFavorite(characterId: number): void {
+    if (!this.favoritesSubject.value.includes(characterId)) {
+      const updated = [...this.favoritesSubject.value, characterId];
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+      this.favoritesSubject.next(updated);
+    }
+  }
+
+  removeFavorite(characterId: number): void {
+    const index = this.favoritesSubject.value.indexOf(characterId);
+    if (index > -1) {
+      const updated = this.favoritesSubject.value.filter(id => id !== characterId);
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+      this.favoritesSubject.next(updated);
+    }
+  }
+
+  toggleFavorite(characterId: number): void {
+    const currentFavorites = this.favoritesSubject.value;
+    const index = currentFavorites.indexOf(characterId);
+
+    const updated = index === -1
+      ? [...currentFavorites, characterId]
+      : currentFavorites.filter(id => id !== characterId);
+
+    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(updated));
+    this.favoritesSubject.next(updated);
   }
 
   isFavorite(characterId: number): boolean {
-    return isFavorite(characterId);
+    return this.favoritesSubject.value.includes(characterId);
   }
 
   getFavorites(): number[] {
-    return favoritesSignal();
-  }
-
-  getFavoritesCount(): number {
-    return favoritesSignal().length;
+    return this.favoritesSubject.value;
   }
 
   clearFavorites(): void {
-    clearFavorites();
+    localStorage.removeItem(this.STORAGE_KEY);
     this.favoritesSubject.next([]);
   }
 }

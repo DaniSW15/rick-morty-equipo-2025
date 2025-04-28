@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 
 @Component({
@@ -18,7 +19,8 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    MatSelectModule
+    MatSelectModule,
+    MatProgressSpinnerModule
   ],
   templateUrl: './filter-form.component.html',
   styleUrls: ['./filter-form.component.css']
@@ -27,16 +29,9 @@ export class FilterFormComponent implements OnDestroy {
   private destroy$ = new Subject<void>();
   filterForm: FormGroup;
 
-  @Input() set filters(value: any) {
-    if (value && this.filterForm) {
-      this.filterForm.patchValue(value, { emitEvent: false });
-    }
-  }
+  @Input() loading = false;
 
-  @Output() nameChange = new EventEmitter<string>();
-  @Output() speciesChange = new EventEmitter<string>();
-  @Output() statusChange = new EventEmitter<string>();
-  @Output() genderChange = new EventEmitter<string>();
+  @Output() filtersChanged = new EventEmitter<any>();
   @Output() clearFilters = new EventEmitter<void>();
 
   constructor(private fb: FormBuilder) {
@@ -47,60 +42,23 @@ export class FilterFormComponent implements OnDestroy {
       gender: ['']
     });
 
-    // Inicializar el formulario con los filtros actuales
-    this.filterForm.patchValue(this.filters);
-
-    // Nombre con debounce
-    this.filterForm.get('name')?.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(value => this.nameChange.emit(value));
-
-    // Especie con debounce
-    this.filterForm.get('species')?.valueChanges
-      .pipe(
-        debounceTime(300),
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(value => this.speciesChange.emit(value));
-
-    // Estado
-    this.filterForm.get('status')?.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(value => this.statusChange.emit(value));
-
-    // Género
-    this.filterForm.get('gender')?.valueChanges
-      .pipe(
-        distinctUntilChanged(),
-        takeUntil(this.destroy$)
-      )
-      .subscribe(value => this.genderChange.emit(value));
-  }
-
-  onClearFilters(): void {
-    this.filterForm.reset({
-      name: '',
-      species: '',
-      status: '',
-      gender: ''
+    // Escuchar cambios en el formulario
+    this.filterForm.valueChanges.pipe(
+      takeUntil(this.destroy$),
+      debounceTime(300),
+      distinctUntilChanged()
+    ).subscribe(filters => {
+      this.filtersChanged.emit(filters);
     });
-    this.nameChange.emit('');
-    this.speciesChange.emit('');
-    this.statusChange.emit('');
-    this.genderChange.emit('');
-    this.clearFilters.emit();
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+  }
+
+  onClearFilters(): void {
+    this.filterForm.reset();
+    this.clearFilters.emit();
   }
 }

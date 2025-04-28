@@ -3,7 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
-import { HeaderComponent } from "./core/components/header/header.component";
+import { HeaderComponent } from "./shared/components/header/header.component";
 
 @Component({
   selector: 'app-root',

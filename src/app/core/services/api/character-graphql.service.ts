@@ -1,204 +1,106 @@
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
 import { gql } from '@apollo/client/core';
-import { map } from 'rxjs/operators';
-import { Observable } from 'rxjs';
+import { map, catchError, shareReplay } from 'rxjs/operators';
+import { Observable, of, forkJoin } from 'rxjs';
 import { Character } from '../../../core/models/character.interface';
-import { CharacterResponse, CharacterResult, FilterCharacter } from '../../../core/models/character.response.interface';
 import { Location } from '../../../core/models/location.interface';
 import { Episode } from '../../../core/models/episode.interface';
+import { CharacterDataSource, CharacterResponse } from './character-data-source.interface';
+import { GET_CHARACTER, GET_CHARACTERS, GET_EPISODE, GET_LOCATION } from '../../graphql/queries/character.queries';
 
-const GET_CHARACTERS = gql`
-  query GetCharacters($page: Int, $filter: FilterCharacter) {
-    characters(page: $page, filter: $filter) {
-      info {
-        count
-        pages
-        next
-        prev
-      }
-      results {
-        id
-        name
-        status
-        species
-        type
-        gender
-        origin {
-          name
-        }
-        location {
-          name
-        }
-        image
-        episode {
-          episode
-        }
-        created
-      }
-    }
-  }
-`;
-
-const GET_LOCATION = gql`
-  query GetLocation($id: ID!) {
-    location(id: $id) {
-      id
-      name
-      type
-      dimension
-      residents {
-        id
-        name
-        image
-      }
-      created
-    }
-  }
-`;
-
-const GET_EPISODE = gql`
-  query GetEpisode($id: ID!) {
-    episode(id: $id) {
-      id
-      name
-      air_date
-      episode
-      characters {
-        id
-        name
-        image
-      }
-    }
-  }
-`;
-
-const GET_CHARACTER = gql`
-  query GetCharacter($id: ID!) {
-    character(id: $id) {
-      id
-      name
-      status
-      species
-      type
-      gender
-      origin {
-        id
-        name
-        type
-        dimension
-      }
-      location {
-        id
-        name
-        type
-        dimension
-      }
-      image
-      episode {
-        id
-        name
-        air_date
-        episode
-      }
-      created
-    }
-  }
-`;
 
 @Injectable({
   providedIn: 'root'
 })
-export class CharacterGraphqlService {
+export class CharacterGraphqlService implements CharacterDataSource {
+  private characterCache = new Map<any, Observable<Character>>();
+
   constructor(private apollo: Apollo) { }
 
   getAllCharacters(
-    page: number = 1,
-    name: string = '',
-    status: string = '',
-    species: string = '',
-    type: string = '',
-    gender: string = ''
-  ): Observable<CharacterResult> {
-    const filter: FilterCharacter = {};
-
+    page: any = 1,
+    name?: any,
+    status?: any,
+    species?: any,
+    type?: any,
+    gender?: any
+  ): Observable<CharacterResponse> {
+    const filter: any = {};
     if (name) filter.name = name;
     if (status) filter.status = status;
     if (species) filter.species = species;
     if (type) filter.type = type;
     if (gender) filter.gender = gender;
 
-    return this.apollo
-      .watchQuery<CharacterResponse>({
-        query: GET_CHARACTERS,
-        variables: {
-          page,
-          filter: Object.keys(filter).length > 0 ? filter : undefined
-        }
-      })
-      .valueChanges.pipe(
-        map(({ data }) => ({
-          info: data.characters.info,
-          results: data.characters.results
-        }))
-      );
+    return this.apollo.watchQuery<any>({
+      query: GET_CHARACTERS,
+      variables: {
+        page,
+        filter: Object.keys(filter).length > 0 ? filter : undefined
+      }
+    }).valueChanges.pipe(
+      map(({ data }) => data.characters),
+      shareReplay(1)
+    );
   }
 
-  getLocation(id: string): Observable<Location> {
-    return this.apollo
-      .watchQuery<{ location: Location }>({
-        query: GET_LOCATION,
-        variables: { id }
-      })
-      .valueChanges.pipe(
-        map(({ data }) => data.location)
-      );
-  }
-
-  getEpisode(id: string | number): Observable<Episode> {
-    return this.apollo
-      .watchQuery<{ episode: Episode }>({
-        query: GET_EPISODE,
-        variables: { id },
-        errorPolicy: 'all'
-      })
-      .valueChanges
-      .pipe(
-        map(result => {
-          if (result.error) {
-            throw result.error;
-          }
-          if (!result.data || !result.data.episode) {
-            throw new Error('Episodio no encontrado');
-          }
-          return result.data.episode;
-        })
-      );
-  }
-
-  getCharacterById(id: string | number): Observable<Character> {
-    console.log('Service - Requesting character with ID:', id); // Debug
-    return this.apollo
-      .watchQuery<{ character: Character }>({
+  getCharacterById(id: any): Observable<Character> {
+    if (!this.characterCache.has(id)) {
+      const character$ = this.apollo.watchQuery<any>({
         query: GET_CHARACTER,
-        variables: { id },
-        errorPolicy: 'all',
-        fetchPolicy: 'network-only' // Forzar petición al servidor
-      })
-      .valueChanges
-      .pipe(
-        map(result => {
-          console.log('Service - GraphQL response:', result); // Debug
-          if (result.error) {
-            console.error('Service - GraphQL error:', result.error); // Debug
-            throw result.error;
-          }
-          if (!result.data || !result.data.character) {
-            console.error('Service - No character data received'); // Debug
-            throw new Error('Personaje no encontrado');
-          }
-          return result.data.character;
-        })
+        variables: { id }
+      }).valueChanges.pipe(
+        map(({ data }) => data.character),
+        shareReplay(1)
       );
+      this.characterCache.set(id, character$);
+    }
+    return this.characterCache.get(id)!;
+  }
+
+  private getLocationDetails(url: any): Observable<Location & { residents: Character[] }> {
+    const id = this.extractIdFromUrl(url);
+    return this.apollo.watchQuery<any>({
+      query: GET_LOCATION,
+      variables: { id }
+    }).valueChanges.pipe(
+      map(({ data }) => data.location),
+      map(location => ({
+        ...location,
+        residents: location.residents.slice(0, 1).map((url: any) => this.getCharacterById(this.extractIdFromUrl(url)))
+      })),
+      shareReplay(1)
+    );
+  }
+
+  private getEpisodeDetails(url: any): Observable<Episode> {
+    const id = this.extractIdFromUrl(url);
+    return this.apollo.watchQuery<any>({
+      query: GET_EPISODE,
+      variables: { id }
+    }).valueChanges.pipe(
+      map(({ data }) => data.episode),
+      shareReplay(1)
+    );
+  }
+
+  loadCharacterComplete(character: Character): Observable<{
+    origin: (Location & { residents: Character[] }) | null;
+    location: (Location & { residents: Character[] }) | null;
+    episode: Episode | null;
+  }> {
+    return forkJoin({
+      origin: character.origin?.url ? this.getLocationDetails(character.origin.url) : of(null),
+      location: character.location?.url ? this.getLocationDetails(character.location.url) : of(null),
+      episode: character.episode?.[0] ? this.getEpisodeDetails(character.episode[0]) : of(null)
+    }).pipe(
+      shareReplay(1)
+    );
+  }
+
+  private extractIdFromUrl(url: any): any {
+    const parts = url.split('/');
+    return parts[parts.length - 1];
   }
 }
