@@ -20,6 +20,7 @@ import { TotalsComponent } from "../totals/totals.component";
 import { lastValueFrom } from 'rxjs';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatCardModule } from '@angular/material/card';
+import { EmptyValuePipe } from "../../core/pipes/empty-value.pipe";
 
 @Component({
   selector: 'app-character-table',
@@ -41,8 +42,9 @@ import { MatCardModule } from '@angular/material/card';
     CharacterDetailComponent,
     TotalsComponent,
     MatFormFieldModule,
-    MatCardModule
-  ],
+    MatCardModule,
+    EmptyValuePipe
+],
   templateUrl: './character-table.component.html',
   styleUrls: ['./character-table.component.css']
 })

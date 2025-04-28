@@ -58,15 +58,15 @@
                        [alt]="character.name"
                        class="character-avatar">
                 </td>
-                <td>{{ character.name }}</td>
+                <td>{{ character.name | emptyValue }}</td>
                 <td>
                   <span class="status-badge" [class]="character.status.toLowerCase()">
-                    {{ character.status }}
+                    {{ character.status | translate:'status' }}
                   </span>
                 </td>
-                <td>{{ character.species }}</td>
-                <td>{{ character.type || '-' }}</td>
-                <td>{{ character.gender }}</td>
+                <td>{{ character.species | translate:'species' }}</td>
+                <td>{{ character.type | emptyValue }}</td>
+                <td>{{ character.gender | translate:'gender' }}</td>
                 <td>{{ character.created | date:'mediumDate' }}</td>
                 <td>
                   <button mat-icon-button

@@ -1,7 +1,7 @@
 import { ApplicationConfig, APP_INITIALIZER } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
-import { HTTP_INTERCEPTORS, provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { APOLLO_OPTIONS, Apollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client/core';
@@ -18,24 +18,19 @@ import { loadFavoritesFromStorage } from './state/signals/favorites.signal';
 import { CHARACTER_DATA_SOURCE } from './core/services/api/character-data-source.token';
 import { TotalsService } from './core/services/totals.service';
 import { FavoritesService } from './core/services/favorites.service';
-import { LoadingInterceptor } from './core/interceptors/loading.interceptor';
-import { ErrorInterceptor } from './core/interceptors/error.interceptor';
+import { loadingInterceptor } from './core/interceptors/loading.interceptor';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
     provideAnimations(),
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: LoadingInterceptor,
-      multi: true
-    },
-    {
-      provide: HTTP_INTERCEPTORS,
-      useClass: ErrorInterceptor,
-      multi: true
-    },
-    provideHttpClient(),
+    provideHttpClient(
+      withInterceptors([
+        loadingInterceptor,
+        errorInterceptor
+      ])
+    ),
     provideStore({
       character: characterReducer
     }),
@@ -60,6 +55,10 @@ export const appConfig: ApplicationConfig = {
     Apollo,
     CharacterGraphqlService,
     {
+      provide: CHARACTER_DATA_SOURCE,
+      useExisting: CharacterGraphqlService
+    },
+    {
       provide: APP_INITIALIZER,
       useFactory: (service: CharacterGraphqlService) => {
         return () => {
@@ -69,10 +68,6 @@ export const appConfig: ApplicationConfig = {
       },
       deps: [CharacterGraphqlService],
       multi: true
-    },
-    {
-      provide: CHARACTER_DATA_SOURCE,
-      useExisting: CharacterGraphqlService
     },
     TotalsService,
     FavoritesService

@@ -1,32 +1,25 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { finalize } from 'rxjs/operators';
-import { Store } from '@ngrx/store';
-import * as CharacterActions from '../../state/store/character-store/character.actions';
+import { LoadingService } from '../services/loading.service';
 
-@Injectable()
-export class LoadingInterceptor implements HttpInterceptor {
-  private totalRequests = 0;
+let totalRequests = 0;
 
-  constructor(private store: Store) {}
+export const loadingInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn
+) => {
+  const loadingService = inject(LoadingService);
 
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    this.totalRequests++;
-    this.store.dispatch(CharacterActions.setLoading({ loading: true }));
+  totalRequests++;
+  loadingService.setLoading(true);
 
-    return next.handle(request).pipe(
-      finalize(() => {
-        this.totalRequests--;
-        if (this.totalRequests === 0) {
-          this.store.dispatch(CharacterActions.setLoading({ loading: false }));
-        }
-      })
-    );
-  }
-}
+  return next(req).pipe(
+    finalize(() => {
+      totalRequests--;
+      if (totalRequests === 0) {
+        loadingService.setLoading(false);
+      }
+    })
+  );
+};

@@ -1,40 +1,47 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor,
-  HttpErrorResponse
-} from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
+import { HttpErrorResponse, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-@Injectable()
-export class ErrorInterceptor implements HttpInterceptor {
-  constructor(private snackBar: MatSnackBar) {}
+export const errorInterceptor: HttpInterceptorFn = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn
+) => {
+  const snackBar = inject(MatSnackBar);
 
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    return next.handle(request).pipe(
-      catchError((error: HttpErrorResponse) => {
-        let errorMessage = 'An error occurred';
+  return next(req).pipe(
+    catchError((error: HttpErrorResponse) => {
+      let errorMessage = 'Ha ocurrido un error';
 
-        if (error.error instanceof ErrorEvent) {
-          // Client-side error
-          errorMessage = error.error.message;
-        } else {
-          // Server-side error
-          errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      if (error.error instanceof ErrorEvent) {
+        // Error del cliente
+        errorMessage = `Error: ${error.error.message}`;
+      } else {
+        // Error del servidor
+        switch (error.status) {
+          case 404:
+            errorMessage = 'Recurso no encontrado';
+            break;
+          case 500:
+            errorMessage = 'Error interno del servidor';
+            break;
+          case 429:
+            errorMessage = 'Demasiadas peticiones, por favor espera un momento';
+            break;
+          default:
+            errorMessage = `Error ${error.status}: ${error.message}`;
         }
+      }
 
-        this.snackBar.open(errorMessage, 'Close', {
-          duration: 5000,
-          horizontalPosition: 'end',
-          verticalPosition: 'bottom'
-        });
+      snackBar.open(errorMessage, 'Cerrar', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'bottom',
+        panelClass: ['error-snackbar']
+      });
 
-        return throwError(() => error);
-      })
-    );
-  }
-}
+      return throwError(() => error);
+    })
+  );
+};
