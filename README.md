@@ -1,27 +1,85 @@
-# RickMortyEquipo2025
+# Rick & Morty Explorer
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.2.12.
+Una aplicación web moderna construida con Angular que permite explorar el universo de Rick & Morty.
 
-## Development server
+## Características
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+- **Exploración de Personajes**: Visualiza y busca todos los personajes de la serie
+- **Detalles Detallados**: Información completa de cada personaje, incluyendo:
+  - Estado y especie
+  - Ubicación actual y origen
+  - Episodios donde aparece
+- **Favoritos**: Guarda tus personajes favoritos para acceso rápido
+- **Modo Responsivo**: Diseño adaptable para móviles y escritorio
+- **Carga Optimizada**: Implementación de lazy loading para mejor rendimiento
 
-## Code scaffolding
+## Tecnologías
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- Angular 18.2.12
+- Apollo GraphQL
+- Angular Material
+- RxJS
+- CSS Variables para theming
 
-## Build
+## Instalación
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+1. Clona el repositorio:
+```bash
+git clone https://github.com/yourusername/rick-morty-equipo-2025.git
+```
 
-## Running unit tests
+2. Instala las dependencias:
+```bash
+cd rick-morty-equipo-2025
+npm install
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+3. Inicia el servidor de desarrollo:
+```bash
+ng serve
+```
 
-## Running end-to-end tests
+4. Abre http://localhost:4200 en tu navegador
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Estructura del Proyecto
 
-## Further help
+```
+src/
+├── app/
+│   ├── core/           # Servicios core y utilidades
+│   ├── features/       # Componentes principales
+│   ├── shared/        # Componentes y utilidades compartidas
+│   └── app.routes.ts  # Configuración de rutas
+```
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+## Rutas Principales
+
+- `/characters` - Lista de personajes
+- `/detail/:id` - Detalles del personaje
+- `/edit/:id` - Edición de personaje
+- `/favorites` - Personajes favoritos
+
+## Scripts Disponibles
+
+- `ng serve` - Inicia servidor de desarrollo
+- `ng build` - Compila el proyecto
+- `ng test` - Ejecuta tests unitarios
+- `ng lint` - Ejecuta linting
+
+## Contribuir
+
+1. Fork el proyecto
+2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+## Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+## Equipo
+
+- [Nombre del Desarrollador 1]
+- [Nombre del Desarrollador 2]
+- [Nombre del Desarrollador 3]
