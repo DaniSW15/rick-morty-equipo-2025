@@ -1,9 +1,10 @@
-import { Component, signal } from '@angular/core';
+import { Component, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { Subject, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-header',
@@ -17,14 +18,17 @@ import { FavoritesService } from '../../../core/services/favorites.service';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })
-export class HeaderComponent {
+export class HeaderComponent implements OnDestroy {
   isMobileMenuOpen = signal(false);
   favoriteCount = signal(0);
+  private destroy$ = new Subject<void>();
 
   constructor(private favoritesService: FavoritesService) {
-    this.favoritesService.favorites$.subscribe(favorites => {
-      this.favoriteCount.set(favorites.length);
-    });
+    this.favoritesService.favorites$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(favorites => {
+        this.favoriteCount.set(favorites.length);
+      });
   }
 
   toggleMobileMenu(): void {
@@ -33,5 +37,10 @@ export class HeaderComponent {
 
   closeMobileMenu(): void {
     this.isMobileMenuOpen.set(false);
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 }

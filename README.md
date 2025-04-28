@@ -55,8 +55,6 @@ src/
 ## Rutas Principales
 
 - `/characters` - Lista de personajes
-- `/detail/:id` - Detalles del personaje
-- `/edit/:id` - Edición de personaje
 - `/favorites` - Personajes favoritos
 
 ## Scripts Disponibles

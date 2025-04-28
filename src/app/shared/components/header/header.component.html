@@ -1,50 +1,51 @@
 <header class="header">
   <div class="header-content">
-    <!-- Logo y nombre -->
     <a routerLink="/" class="logo-container">
+      <img src="assets/img/image.png" alt="Rick and Morty Logo" class="logo">
       <h1 class="app-name">Rick and Morty</h1>
     </a>
 
-    <!-- Links de navegación -->
     <nav class="nav-links">
       <a routerLink="/characters"
          routerLinkActive="active"
          class="nav-link">
-        Personajes
+        <mat-icon>people</mat-icon>
+        <span>Personajes</span>
       </a>
       <a routerLink="/favorites"
          routerLinkActive="active"
          class="nav-link">
-        Favoritos
+        <mat-icon>favorite</mat-icon>
+        <span>Favoritos</span>
         <span class="favorite-count" *ngIf="favoriteCount() > 0">
           {{ favoriteCount() }}
         </span>
       </a>
     </nav>
 
-    <!-- Botón de menú móvil -->
     <button mat-icon-button
             class="menu-button"
             (click)="toggleMobileMenu()"
             aria-label="Toggle navigation menu">
-      <mat-icon>menu</mat-icon>
+      <mat-icon>{{ isMobileMenuOpen() ? 'close' : 'menu' }}</mat-icon>
     </button>
   </div>
 
-  <!-- Menú móvil -->
   <div class="mobile-menu" [class.open]="isMobileMenuOpen()">
     <nav class="nav-links">
       <a routerLink="/characters"
          routerLinkActive="active"
          class="nav-link"
          (click)="closeMobileMenu()">
-        Personajes
+        <mat-icon>people</mat-icon>
+        <span>Personajes</span>
       </a>
       <a routerLink="/favorites"
          routerLinkActive="active"
          class="nav-link"
          (click)="closeMobileMenu()">
-        Favoritos
+        <mat-icon>favorite</mat-icon>
+        <span>Favoritos</span>
         <span class="favorite-count" *ngIf="favoriteCount() > 0">
           {{ favoriteCount() }}
         </span>

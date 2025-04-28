@@ -1,7 +1,0 @@
-<mat-form-field appearance="outline" class="filter-field">
-  <mat-label>{{ label }}</mat-label>
-  <input matInput [placeholder]="placeholder" [(ngModel)]="value" (ngModelChange)="onValueChange($event)">
-  <button *ngIf="value" matSuffix mat-icon-button aria-label="Limpiar" (click)="clearValue()">
-    <mat-icon>close</mat-icon>
-  </button>
-</mat-form-field>

@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { map, distinctUntilChanged, shareReplay } from 'rxjs/operators';
-import { Character } from '../models/character.interface';
+import { BehaviorSubject } from 'rxjs';
+import { distinctUntilChanged, shareReplay } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'

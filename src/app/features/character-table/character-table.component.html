@@ -1,24 +1,12 @@
 <div class="main-container">
   <div class="content-wrapper">
-    <!-- Totales -->
-    <div class="totals-section">
-      <div class="species-totals">
-        <h3>Totales por Especie</h3>
-        <app-totals [type]="'species'" [characters]="characters()"></app-totals>
-      </div>
-      <div class="type-totals">
-        <h3>Totales por Tipo</h3>
-        <app-totals [type]="'type'" [characters]="characters()"></app-totals>
-      </div>
-    </div>
     <!-- Barra de favoritos -->
     <div class="favorites-bar" *ngIf="favorites().length > 0">
       <h3>Personajes Favoritos</h3>
       <div class="favorite-chips">
         <mat-chip-listbox>
-          <mat-chip-option *ngFor="let id of favorites()"
-                          [selected]="selectedCharacter()?.id === id"
-                          (click)="selectFavoriteCharacter(id)">
+          <mat-chip-option *ngFor="let id of favorites()" [selected]="selectedCharacter()?.id === id"
+            (click)="selectFavoriteCharacter(id)">
             {{ getFavoriteCharacterName(id) }}
           </mat-chip-option>
         </mat-chip-listbox>
@@ -26,9 +14,7 @@
     </div>
 
     <!-- Filtros -->
-    <app-filter-form
-      [loading]="loading()"
-      (filtersChanged)="onFiltersChanged($event)"
+    <app-filter-form [loading]="loading()" (filtersChanged)="onFiltersChanged($event)"
       (clearFilters)="onClearFilters()">
     </app-filter-form>
 
@@ -50,13 +36,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let character of characters()"
-                  (click)="selectCharacter(character)"
-                  [class.selected]="selectedCharacter()?.id === character.id">
+              <tr *ngFor="let character of characters()" (click)="selectCharacter(character)"
+                [class.selected]="selectedCharacter()?.id === character.id">
                 <td>
-                  <img [src]="character.image"
-                       [alt]="character.name"
-                       class="character-avatar">
+                  <img [src]="character.image" [alt]="character.name" class="character-avatar">
                 </td>
                 <td>{{ character.name | emptyValue }}</td>
                 <td>
@@ -69,10 +52,9 @@
                 <td>{{ character.gender | translate:'gender' }}</td>
                 <td>{{ character.created | date:'mediumDate' }}</td>
                 <td>
-                  <button mat-icon-button
-                          [color]="isFavorite(character.id) ? 'warn' : ''"
-                          (click)="toggleFavorite(character); $event.stopPropagation()"
-                          [matTooltip]="isFavorite(character.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'">
+                  <button mat-icon-button [color]="isFavorite(character.id) ? 'warn' : ''"
+                    (click)="toggleFavorite(character); $event.stopPropagation()"
+                    [matTooltip]="isFavorite(character.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'">
                     <mat-icon>{{ isFavorite(character.id) ? 'favorite' : 'favorite_border' }}</mat-icon>
                   </button>
                 </td>
@@ -81,14 +63,20 @@
           </table>
 
           <!-- Paginador -->
-          <mat-paginator
-            [length]="totalItems()"
-            [pageSize]="pageSize()"
-            [pageIndex]="currentPage()"
-            [pageSizeOptions]="[5, 10, 20, 50]"
-            (page)="onPageChange($event)"
-            aria-label="Seleccionar página">
+          <mat-paginator [length]="totalItems()" [pageSize]="pageSize()" [pageIndex]="currentPage()"
+            [pageSizeOptions]="[5, 10, 20, 50]" (page)="onPageChange($event)" aria-label="Seleccionar página">
           </mat-paginator>
+        </div>
+        <!-- Totales -->
+        <div class="totals-section">
+          <div class="species-totals">
+            <h3>Totales por Especie</h3>
+            <app-totals [type]="'species'" [characters]="characters()"></app-totals>
+          </div>
+          <div class="type-totals">
+            <h3>Totales por Tipo</h3>
+            <app-totals [type]="'type'" [characters]="characters()"></app-totals>
+          </div>
         </div>
       </div>
 

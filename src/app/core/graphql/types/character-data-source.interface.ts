@@ -18,6 +18,7 @@ export interface CharacterDataSource {
     page?: number,
     name?: string,
     status?: string,
+    species?: string,
     pageSize?: number
   ): Observable<CharacterResponse>;
   getCharacterById(id: number): Observable<Character>;

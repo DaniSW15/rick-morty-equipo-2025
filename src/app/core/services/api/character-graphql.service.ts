@@ -1,12 +1,11 @@
 import { Injectable } from '@angular/core';
 import { Apollo } from 'apollo-angular';
-import { gql } from '@apollo/client/core';
-import { map, catchError, shareReplay } from 'rxjs/operators';
+import { map, shareReplay } from 'rxjs/operators';
 import { Observable, of, forkJoin } from 'rxjs';
 import { Character } from '../../../core/models/character.interface';
 import { Location } from '../../../core/models/location.interface';
 import { Episode } from '../../../core/models/episode.interface';
-import { CharacterDataSource, CharacterResponse } from './character-data-source.interface';
+import { CharacterDataSource, CharacterResponse } from '../../graphql/types/character-data-source.interface';
 import { GET_CHARACTER, GET_CHARACTERS, GET_EPISODE, GET_LOCATION } from '../../graphql/queries/character.queries';
 
 

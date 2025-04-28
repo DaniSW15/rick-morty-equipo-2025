@@ -10,7 +10,7 @@ import { routes } from './app.routes';
 import { CharacterGraphqlService } from './core/services/api/character-graphql.service';
 import { initializeCharacterService } from './state/signals/character.signal';
 import { loadFavoritesFromStorage } from './state/signals/favorites.signal';
-import { CHARACTER_DATA_SOURCE } from './core/services/api/character-data-source.token';
+import { CHARACTER_DATA_SOURCE } from './core/graphql/types/character-data-source.token';
 import { TotalsService } from './core/services/totals.service';
 import { FavoritesService } from './core/services/favorites.service';
 import { loadingInterceptor } from './core/interceptors/loading.interceptor';

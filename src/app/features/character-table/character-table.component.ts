@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, ViewChild, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, signal, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
@@ -48,7 +48,7 @@ import { EmptyValuePipe } from "../../core/pipes/empty-value.pipe";
   templateUrl: './character-table.component.html',
   styleUrls: ['./character-table.component.css']
 })
-export class CharacterTableComponent implements OnInit, OnDestroy {
+export class CharacterTableComponent implements OnInit {
   // Signals para el estado
   characters = signal<Character[]>([]);
   selectedCharacter = signal<Character | undefined>(undefined);
@@ -77,6 +77,7 @@ export class CharacterTableComponent implements OnInit, OnDestroy {
         this.currentPage() + 1,
         filters.name,
         filters.status,
+        filters.species,
         this.pageSize()
       ));
 
@@ -140,9 +141,5 @@ export class CharacterTableComponent implements OnInit, OnDestroy {
     this.currentPage.set(event.pageIndex);
     this.pageSize.set(event.pageSize);
     this.loadCharacters(this.currentFilters());
-  }
-
-  ngOnDestroy(): void {
-    // No hay subscripciones que limpiar ya que usamos signals y lastValueFrom
   }
 }

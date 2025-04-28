@@ -5,7 +5,7 @@ import { map, catchError, shareReplay, switchMap } from 'rxjs/operators';
 import { Character } from '../../models/character.interface';
 import { Location, LocationWithResidents } from '../../models/location.interface';
 import { Episode } from '../../models/episode.interface';
-import { CharacterDataSource, CharacterResponse } from './character-data-source.interface';
+import { CharacterDataSource, CharacterResponse } from '../../graphql/types/character-data-source.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +22,7 @@ export class CharacterRestService implements CharacterDataSource {
     page?: number,
     name?: string,
     status?: string,
+    species?: string,
     pageSize: number = 20
   ): Observable<CharacterResponse> {
     const queryParams = new URLSearchParams();
@@ -34,6 +35,7 @@ export class CharacterRestService implements CharacterDataSource {
     // Agregar otros parámetros si están presentes
     if (name) queryParams.append('name', name);
     if (status) queryParams.append('status', status);
+    if (species) queryParams.append('species', species);
 
     return this.http.get<CharacterResponse>(`${this.API_URL}/character?${queryParams.toString()}`).pipe(
       map(response => ({
