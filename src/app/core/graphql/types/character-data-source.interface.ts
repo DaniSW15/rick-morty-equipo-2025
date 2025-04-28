@@ -19,6 +19,7 @@ export interface CharacterDataSource {
     name?: string,
     status?: string,
     species?: string,
+    gender?: string,
     pageSize?: number
   ): Observable<CharacterResponse>;
   getCharacterById(id: number): Observable<Character>;

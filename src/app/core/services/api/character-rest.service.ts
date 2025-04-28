@@ -23,6 +23,7 @@ export class CharacterRestService implements CharacterDataSource {
     name?: string,
     status?: string,
     species?: string,
+    gender?: string,
     pageSize: number = 20
   ): Observable<CharacterResponse> {
     const queryParams = new URLSearchParams();
@@ -36,6 +37,7 @@ export class CharacterRestService implements CharacterDataSource {
     if (name) queryParams.append('name', name);
     if (status) queryParams.append('status', status);
     if (species) queryParams.append('species', species);
+    if (gender) queryParams.append('gender', gender);
 
     return this.http.get<CharacterResponse>(`${this.API_URL}/character?${queryParams.toString()}`).pipe(
       map(response => ({

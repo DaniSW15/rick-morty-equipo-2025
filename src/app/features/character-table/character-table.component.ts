@@ -78,6 +78,7 @@ export class CharacterTableComponent implements OnInit {
         filters.name,
         filters.status,
         filters.species,
+        filters.gender,
         this.pageSize()
       ));
 
