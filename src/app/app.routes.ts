@@ -1,25 +1,25 @@
 import { Routes } from '@angular/router';
-import { CharacterTableComponent } from './features/character-table/character-table.component';
-import { FavoritesComponent } from './features/favorites/favorites.component';
-import { CharacterEditComponent } from './features/character-edit/character-edit.component';
 
 export const routes: Routes = [
   {
-    path: '',
-    redirectTo: 'characters',
-    pathMatch: 'full'
-  },
-  {
     path: 'characters',
-    component: CharacterTableComponent
+    loadComponent: () => import('./features/character-table/character-table.component')
+      .then(m => m.CharacterTableComponent)
   },
   {
-    path: 'characters/:id',
-    component: CharacterEditComponent
+    path: 'detail/:id',
+    loadComponent: () => import('./features/character-detail/character-detail.component')
+      .then(m => m.CharacterDetailComponent)
+  },
+  {
+    path: 'edit/:id',
+    loadComponent: () => import('./features/character-edit/character-edit.component')
+      .then(m => m.CharacterEditComponent)
   },
   {
     path: 'favorites',
-    component: FavoritesComponent
+    loadComponent: () => import('./features/favorites/favorites.component')
+      .then(m => m.FavoritesComponent)
   },
   {
     path: '**',

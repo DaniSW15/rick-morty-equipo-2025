@@ -5,13 +5,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { APOLLO_OPTIONS, Apollo } from 'apollo-angular';
 import { HttpLink } from 'apollo-angular/http';
 import { InMemoryCache } from '@apollo/client/core';
-import { provideStore } from '@ngrx/store';
-import { provideEffects } from '@ngrx/effects';
-import { provideStoreDevtools } from '@ngrx/store-devtools';
 
 import { routes } from './app.routes';
-import { characterReducer } from './state/store/character-store/character.reducer';
-import { CharacterEffects } from './state/store/character-store/character.effects';
 import { CharacterGraphqlService } from './core/services/api/character-graphql.service';
 import { initializeCharacterService } from './state/signals/character.signal';
 import { loadFavoritesFromStorage } from './state/signals/favorites.signal';
@@ -31,17 +26,6 @@ export const appConfig: ApplicationConfig = {
         errorInterceptor
       ])
     ),
-    provideStore({
-      character: characterReducer
-    }),
-    provideEffects([CharacterEffects]),
-    provideStoreDevtools({
-      maxAge: 25,
-      logOnly: false,
-      autoPause: true,
-      trace: false,
-      traceLimit: 75,
-    }),
     {
       provide: APOLLO_OPTIONS,
       useFactory: (httpLink: HttpLink) => ({

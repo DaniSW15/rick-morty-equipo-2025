@@ -30,7 +30,6 @@ interface CharacterDetailsView {
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
-    TranslatePipe,
     MatExpansionModule
   ]
 })

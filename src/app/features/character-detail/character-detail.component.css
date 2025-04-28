@@ -9,6 +9,7 @@
   padding: 1rem;
   max-width: 600px;
   margin: 0 auto;
+  gap: 1rem;
 }
 
 .character-detail.drawer {
@@ -73,8 +74,8 @@
 }
 
 .character-image {
-  width: 200px;
-  height: 200px;
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #fff;
@@ -86,9 +87,9 @@
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.9rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
   font-weight: 500;
   text-transform: capitalize;
   color: white;
@@ -504,4 +505,43 @@ mat-panel-title mat-icon {
 .status-badge.unknown {
   background-color: #9e9e9e;
   color: white;
+}
+
+.detail-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.info-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.info-card {
+  padding: 1rem;
+  border-radius: 8px;
+  background: var(--surface-card);
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.residents-list {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0;
+}
+
+.status-badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  &.alive { background: #4caf50; color: white; }
+  &.dead { background: #f44336; color: white; }
+  &.unknown { background: #9e9e9e; color: white; }
 }
