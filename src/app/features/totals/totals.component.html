@@ -1,29 +1,13 @@
 <div class="totals-container">
   <mat-card>
     <mat-card-header>
-      <mat-card-title>Totales por Especie</mat-card-title>
+      <mat-card-title>{{ type === 'species' ? 'Totales por Especie' : 'Totales por Tipo' }}</mat-card-title>
     </mat-card-header>
     <mat-card-content>
       <div class="totals-grid">
         @for (item of totals; track item.name) {
           <div class="total-item">
-            <span class="name">{{ item.name || 'Desconocido' }}</span>
-            <span class="count">{{ item.count }}</span>
-          </div>
-        }
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>Totales por Tipo</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div class="totals-grid">
-        @for (item of totals; track item.name) {
-          <div class="total-item">
-            <span class="name">{{ item.name || 'Sin tipo' }}</span>
+            <span class="name">{{ item.name || (type === 'species' ? 'Desconocido' : 'Sin tipo') }}</span>
             <span class="count">{{ item.count }}</span>
           </div>
         }
